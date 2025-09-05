@@ -31,9 +31,10 @@ function init(){
     id:i+1,
     currentBetType:bt,
     stepIndex:0,
-    doubled:false,
     betAmount:betSteps[0],
-    history:[]
+    history:[],
+    parlayed:false,  // track if currently in parlay
+    firstBet:true    // track first bet of session
   }));
   spinHistory = [];
   renderNumbers();
@@ -71,28 +72,45 @@ function handleSpin(num){
 function recalcPlayers(){
   players.forEach(p=>{
     p.stepIndex=0;
-    p.doubled=false;
     p.betAmount=betSteps[0];
     p.history=[];
     p.currentBetType=startingBets[p.id-1];
+    p.parlayed=false;
+    p.firstBet=true;
   });
 
   for(const num of spinHistory){
     for(const p of players){
       const won = checkWin(p.currentBetType,num);
+      const lastResult = p.history.length > 0 ? p.history[p.history.length-1] : null;
       p.history.push(won?"W":"L");
 
       if(won){
-        if(!p.doubled){ p.betAmount *= 2; p.doubled=true; }
-        else{ p.stepIndex=0; p.betAmount=betSteps[0]; p.doubled=false; }
-        p.currentBetType=startingBets[p.id-1];
+        if(p.parlayed){
+          // Parlay bet won → reset to step 1
+          p.stepIndex = 0;
+          p.betAmount = betSteps[0];
+          p.parlayed = false;
+        } else if(p.firstBet || (!p.parlayed && lastResult==="L")){
+          // Initial bet or first win after loss → parlay
+          p.betAmount *= 2;
+          p.parlayed = true;
+        } else {
+          // Normal win without parlay → reset to base
+          p.betAmount = betSteps[0];
+          p.parlayed = false;
+        }
+        p.currentBetType = startingBets[p.id-1];
       } else {
+        // Lost → move to next step
         p.stepIndex = (p.stepIndex + 1) % betSteps.length;
         p.betAmount = betSteps[p.stepIndex];
-        p.doubled=false;
         const idx = betOrder.indexOf(p.currentBetType);
         p.currentBetType = betOrder[(idx+1) % betOrder.length];
+        p.parlayed = false;
       }
+
+      p.firstBet = false;
     }
   }
 }
@@ -160,6 +178,7 @@ function updateLastNumbers(){
 }
 
 function resetAll(){init();}
+
 function deleteLast(){
   if(spinHistory.length===0) return;
   spinHistory.pop();
@@ -169,6 +188,7 @@ function deleteLast(){
   updateLastNumbers();
 }
 
+// Dynamic update when bet unit changes
 betUnitInput.addEventListener("input",()=>{
   betUnit=parseFloat(betUnitInput.value)||10;
   betSteps=stepMultipliers.map(m=>m*betUnit);
