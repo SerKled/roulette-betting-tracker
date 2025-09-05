@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Roulette Betting Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <h1 class="title">Roulette Betting Tracker</h1>
+
+    <header class="topbar">
+      <div class="controls">
+        <label>Bet Unit:
+          <input id="betUnit" type="number" min="1" value="10" />
+        </label>
+        <button id="resetBtn" class="btn-reset">Reset</button>
+        <button id="deleteBtn" class="btn-delete">Delete Last</button>
+      </div>
+    </header>
+
+    <!-- zero row -->
+    <div class="zero-row">
+      <button id="zeroBtn" class="number-btn green">0</button>
+    </div>
+
+    <!-- numbers grid -->
+    <div id="numbersGrid" class="numbers-grid"></div>
+
+    <!-- last 10 numbers -->
+    <div class="last-numbers">
+      <strong>Last 10:</strong>
+      <span id="lastNumbers"></span>
+    </div>
+
+    <!-- players table -->
+    <section class="players-section">
+      <table class="players-table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Bet Type</th>
+            <th>Next Bet</th>
+            <th>Since Last Hit</th>
+            <th>Since 2 Wins</th>
+          </tr>
+        </thead>
+        <tbody id="playersBody"></tbody>
+      </table>
+    </section>
+
+    <!-- majority -->
+    <section class="summary">
+      <div><strong>Majority Bet:</strong> <span id="majorityBet">No Bet</span></div>
+      <div><strong>Majority Amount:</strong> <span id="majorityAmount">0</span></div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
