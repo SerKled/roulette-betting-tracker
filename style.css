@@ -1,7 +1,7 @@
 :root {
   --btn-size: 48px;
   --gap: 6px;
-  --bg: #fbf7ec;
+  --bg: #ffffff;
   --red: #e04b46;
   --black: #111;
   --green: #60b36a;
@@ -84,9 +84,12 @@ body {
 .zero-row {
   display: flex;
   justify-content: center;
+  align-items: center;
   margin: 12px 0;
+  gap: 30px; /* space between zero button and majority info */
 }
 
+/* zero button fixed */
 #zeroBtn {
   width: 64px;
   height: 64px;
@@ -96,7 +99,27 @@ body {
   color: #fff;
   background: var(--green);
   font-size: 18px;
-  cursor: pointer;
+  cursor: default;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+/* majority info beside zero button */
+.zero-majority-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-size: 14px;
+  color: #222;
+  gap: 15px; /* spacing between bet and amount */
+  min-width: 180px; /* fixed width to prevent movement */
+  justify-content: space-between;
+}
+
+.zero-majority-info span {
+  display: inline-block;
+  min-width: 80px;
+  text-align: left;
 }
 
 /* numbers grid */
@@ -184,15 +207,5 @@ body {
 }
 
 .highlight-two {
-  background: #adf2b3 !important; /* pastel pink */
-}
-
-/* summary */
-.summary {
-  margin-top: 6px;
-  font-size: 15px;
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-  padding-bottom: 12px;
+  background: #adf2b3 !important; /* pastel green */
 }

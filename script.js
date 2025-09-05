@@ -25,11 +25,17 @@ let players = [];
 let spinHistory = [];
 
 function init(){
-  betUnit = parseFloat(betUnitInput.value) || 10;
-  betSteps = stepMultipliers.map(m => m * betUnit);
-  players = startingBets.map((bt, i) => ({
-    id:i+1,currentBetType:bt,stepIndex:0,doubled:false,betAmount:betSteps[0],history:[]
+  betUnit = parseFloat(betUnitInput.value)||10;
+  betSteps = stepMultipliers.map(m=>m*betUnit);
+  players = startingBets.map((bt,i)=>({
+    id:i+1,
+    currentBetType:bt,
+    stepIndex:0,
+    doubled:false,
+    betAmount:betSteps[0],
+    history:[]
   }));
+  spinHistory = [];
   renderNumbers();
   renderPlayers();
   updateMajority();
@@ -37,7 +43,7 @@ function init(){
 }
 
 function renderNumbers(){
-  numbersGrid.innerHTML = "";
+  numbersGrid.innerHTML="";
   topRow.forEach(n=>numbersGrid.appendChild(createBtn(n)));
   midRow.forEach(n=>numbersGrid.appendChild(createBtn(n)));
   botRow.forEach(n=>numbersGrid.appendChild(createBtn(n)));
@@ -54,41 +60,61 @@ function createBtn(n){
 
 function handleSpin(num){
   spinHistory.push(num);
-  if(spinHistory.length>100)spinHistory.shift();
-  for(let p of players){
-    const won = checkWin(p.currentBetType,num);
-    p.history.push(won?"W":"L");
-    if(won){
-      if(!p.doubled){p.betAmount*=2;p.doubled=true;}
-      else{p.stepIndex=0;p.betAmount=betSteps[0];p.doubled=false;}
-      p.currentBetType=startingBets[p.id-1];
-    }else{
-      p.stepIndex=Math.min(p.stepIndex+1,betSteps.length-1);
-      p.betAmount=betSteps[p.stepIndex];
-      p.doubled=false;
-      const idx=betOrder.indexOf(p.currentBetType);
-      p.currentBetType=betOrder[(idx+1)%betOrder.length];
+  if(spinHistory.length>100) spinHistory.shift();
+  recalcPlayers();
+  renderPlayers();
+  updateMajority();
+  updateLastNumbers();
+}
+
+// Recalculate all players from scratch based on current spinHistory
+function recalcPlayers(){
+  players.forEach(p=>{
+    p.stepIndex=0;
+    p.doubled=false;
+    p.betAmount=betSteps[0];
+    p.history=[];
+    p.currentBetType=startingBets[p.id-1];
+  });
+
+  for(const num of spinHistory){
+    for(const p of players){
+      const won = checkWin(p.currentBetType,num);
+      p.history.push(won?"W":"L");
+
+      if(won){
+        if(!p.doubled){ p.betAmount *= 2; p.doubled=true; }
+        else{ p.stepIndex=0; p.betAmount=betSteps[0]; p.doubled=false; }
+        p.currentBetType=startingBets[p.id-1];
+      } else {
+        p.stepIndex = (p.stepIndex + 1) % betSteps.length;
+        p.betAmount = betSteps[p.stepIndex];
+        p.doubled=false;
+        const idx = betOrder.indexOf(p.currentBetType);
+        p.currentBetType = betOrder[(idx+1) % betOrder.length];
+      }
     }
   }
-  renderPlayers();updateMajority();updateLastNumbers();
 }
 
 function checkWin(betType,num){
-  if(num===0)return false;
-  if(betType==="LOW")return num<=18;
-  if(betType==="HIGH")return num>=19;
-  if(betType==="EVEN")return num%2===0;
-  if(betType==="ODD")return num%2===1;
-  if(betType==="RED")return redNums.has(num);
-  if(betType==="BLACK")return blackNums.has(num);
+  if(num===0) return false;
+  if(betType==="LOW") return num<=18;
+  if(betType==="HIGH") return num>=19;
+  if(betType==="EVEN") return num%2===0;
+  if(betType==="ODD") return num%2===1;
+  if(betType==="RED") return redNums.has(num);
+  if(betType==="BLACK") return blackNums.has(num);
   return false;
 }
 
 function renderPlayers(){
   playersBody.innerHTML="";
-  const lastArr=players.map(p=>sinceLast(p.history));
-  const twoArr=players.map(p=>sinceTwo(p.history));
-  const maxLast=Math.max(...lastArr);const maxTwo=Math.max(...twoArr);
+  const lastArr = players.map(p=>sinceLast(p.history));
+  const twoArr = players.map(p=>sinceTwo(p.history));
+  const maxLast = Math.max(...lastArr);
+  const maxTwo = Math.max(...twoArr);
+
   players.forEach((p,i)=>{
     const tr=document.createElement("tr");
     tr.innerHTML=`
@@ -112,9 +138,20 @@ function updateMajority(){
     amts[p.currentBetType]=amts[p.currentBetType]||[];
     amts[p.currentBetType].push(p.betAmount);
   });
-  const max=Math.max(...Object.values(counts));const winners=Object.keys(counts).filter(t=>counts[t]===max);
-  if(max<=1||winners.length!==1){majorityBetEl.textContent="NO BET";majorityAmountEl.textContent="0";return;}
-  const t=winners[0];majorityBetEl.textContent=t;majorityAmountEl.textContent=Math.max(...amts[t]);
+
+  const max=Math.max(...Object.values(counts));
+  const winners=Object.keys(counts).filter(t=>counts[t]===max);
+
+  if(max<=1||winners.length!==1){
+    majorityBetEl.textContent="NO BET";
+    majorityAmountEl.textContent="0";
+    return;
+  }
+
+  const t=winners[0];
+  const amt=Math.max(...amts[t]);
+  majorityBetEl.textContent=t;
+  majorityAmountEl.textContent=amt;
 }
 
 function updateLastNumbers(){
@@ -122,19 +159,24 @@ function updateLastNumbers(){
   lastNumbersEl.textContent=last10.join(", ");
 }
 
-function resetAll(){init();spinHistory=[];updateLastNumbers();}
+function resetAll(){init();}
 function deleteLast(){
-  if(spinHistory.length===0)return;
-  spinHistory.pop();players.forEach(p=>p.history.pop());
-  renderPlayers();updateMajority();updateLastNumbers();
+  if(spinHistory.length===0) return;
+  spinHistory.pop();
+  recalcPlayers();
+  renderPlayers();
+  updateMajority();
+  updateLastNumbers();
 }
 
 betUnitInput.addEventListener("input",()=>{
   betUnit=parseFloat(betUnitInput.value)||10;
   betSteps=stepMultipliers.map(m=>m*betUnit);
-  players.forEach(p=>p.betAmount=betSteps[p.stepIndex]);
-  renderPlayers();updateMajority();
+  recalcPlayers();
+  renderPlayers();
+  updateMajority();
 });
+
 resetBtn.addEventListener("click",resetAll);
 deleteBtn.addEventListener("click",deleteLast);
 

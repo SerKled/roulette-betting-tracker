@@ -20,9 +20,13 @@
       </div>
     </header>
 
-    <!-- zero row -->
+    <!-- zero row with majority info beside it -->
     <div class="zero-row">
       <button id="zeroBtn" class="number-btn green">0</button>
+      <div class="zero-majority-info">
+        <span><strong>Majority Bet:</strong> <span id="majorityBet">No Bet</span></span>
+        <span style="margin-left:10px;"><strong>Majority Amount:</strong> <span id="majorityAmount">0</span></span>
+      </div>
     </div>
 
     <!-- numbers grid -->
@@ -48,12 +52,6 @@
         </thead>
         <tbody id="playersBody"></tbody>
       </table>
-    </section>
-
-    <!-- majority -->
-    <section class="summary">
-      <div><strong>Majority Bet:</strong> <span id="majorityBet">No Bet</span></div>
-      <div><strong>Majority Amount:</strong> <span id="majorityAmount">0</span></div>
     </section>
   </div>
 
